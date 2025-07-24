@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Movimiento con Animación</title>
+  <title>Jocmov</title>
   <style>
     body {
       margin: 0;
@@ -23,11 +23,12 @@
       width: 32px;
       height: 32px;
       image-rendering: pixelated;
+      transform: translate(-50%, -50%) scale(2);
     }
 
     .controls {
       position: absolute;
-      bottom: 20px;
+      bottom: 120px;
       left: 50%;
       transform: translateX(-50%);
       display: grid;
@@ -53,7 +54,7 @@
 </head>
 <body>
   <div id="gameContainer">
-    <img id="character" src="abajo_idle.png" alt="Personaje" />
+    <img id="character" src="https://i.postimg.cc/7Z2V01RQ/abajo-frente.png" alt="Personaje" />
     <div class="controls">
       <div class="empty"></div>
       <button id="up">↑</button>
@@ -71,66 +72,77 @@
     let y = window.innerHeight / 2 - 16;
     let direction = "down";
     let walkFrame = 0;
-    let walking = false;
-    let flip = false; // para voltear horizontalmente si va a la izquierda
+    let flip = false;
+    let interval = null;
 
     const sprites = {
-      down: ["https://i.postimg.cc/j2DNKt0k/abajo1.png", "https://i.postimg.cc/7Z2V01RQ/abajo-frente.png", "https://i.postimg.cc/ZqYx2kRX/abajo2.png"],
-      up: ["https://i.postimg.cc/gjpVV1fM/arriba1.png", "https://i.postimg.cc/sxJpwwz3/arriba.png", "https://i.postimg.cc/kMNFJXbL/arriba2.png"],
-      side: ["https://i.postimg.cc/8CrMq1GK/izquierda1.png", "https://i.postimg.cc/wMFmhM5v/izquierda.png", "https://i.postimg.cc/ncRmrscS/izquierda2.png"]
+      down: [
+        "https://i.postimg.cc/j2DNKt0k/abajo1.png",
+        "https://i.postimg.cc/7Z2V01RQ/abajo-frente.png",
+        "https://i.postimg.cc/ZqYx2kRX/abajo2.png"
+      ],
+      up: [
+        "https://i.postimg.cc/gjpVV1fM/arriba1.png",
+        "https://i.postimg.cc/sxJpwwz3/arriba.png",
+        "https://i.postimg.cc/kMNFJXbL/arriba2.png"
+      ],
+      side: [
+        "https://i.postimg.cc/8CrMq1GK/izquierda1.png",
+        "https://i.postimg.cc/wMFmhM5v/izquierda.png",
+        "https://i.postimg.cc/ncRmrscS/izquierda2.png"
+      ]
     };
 
     function updateSprite(dir, isWalking) {
-      if (!isWalking) {
-        character.src = sprites[dir][1];
-      } else {
-        walkFrame = (walkFrame + 1) % 3;
-        character.src = sprites[dir][walkFrame];
-      }
-
-      // Reflejar imagen si es hacia la izquierda
-      character.style.transform = flip
-        ? `translate(-50%, -50%) scaleX(-1)`
-        : `translate(-50%, -50%) scaleX(1)`;
+      const currentSprites = sprites[dir];
+      const frame = isWalking ? walkFrame % 3 : 1;
+      character.src = currentSprites[frame];
+      const scaleX = flip ? -2 : 2;
+      character.style.transform = `translate(-50%, -50%) scaleX(${scaleX}) scaleY(2)`;
     }
 
     function move(dx, dy, newDirection) {
       x = Math.max(0, Math.min(window.innerWidth - 32, x + dx));
       y = Math.max(0, Math.min(window.innerHeight - 32, y + dy));
       direction = newDirection;
-      walking = true;
-      updateSprite(direction === "left" || direction === "right" ? "side" : direction, true);
+      const spriteDir = (direction === "left" || direction === "right") ? "side" : direction;
+      updateSprite(spriteDir, true);
       character.style.left = x + "px";
       character.style.top = y + "px";
-
-      // Reflejar si es izquierda
-      flip = direction === "left";
+      flip = direction === "right";
+      walkFrame++;
     }
 
-    function stopWalking() {
-      walking = false;
-      updateSprite(direction === "left" || direction === "right" ? "side" : direction, false);
+    function startMoving(dx, dy, dir) {
+      if (interval) return;
+      interval = setInterval(() => move(dx, dy, dir), 80);
     }
 
-    document.getElementById("up").addEventListener("click", () => {
-      move(0, -speed, "up");
-      setTimeout(stopWalking, 150);
-    });
+    function stopMoving() {
+      clearInterval(interval);
+      interval = null;
+      const spriteDir = (direction === "left" || direction === "right") ? "side" : direction;
+      updateSprite(spriteDir, false);
+    }
 
-    document.getElementById("down").addEventListener("click", () => {
-      move(0, speed, "down");
-      setTimeout(stopWalking, 150);
-    });
+    function setupButton(id, dx, dy, dir) {
+      const btn = document.getElementById(id);
+      const start = () => startMoving(dx, dy, dir);
+      const stop = () => stopMoving();
 
-    document.getElementById("left").addEventListener("click", () => {
-      move(-speed, 0, "left");
-      setTimeout(stopWalking, 150);
-    });
+      btn.addEventListener("mousedown", start);
+      btn.addEventListener("touchstart", start, { passive: true });
 
-    document.getElementById("right").addEventListener("click", () => {
-      move(speed, 0, "right");
-      setTimeout(stopWalking, 150);
-    });
+      btn.addEventListener("mouseup", stop);
+      btn.addEventListener("mouseleave", stop);
+      btn.addEventListener("touchend", stop);
+      btn.addEventListener("touchcancel", stop);
+    }
+
+    setupButton("up", 0, -speed, "up");
+    setupButton("down", 0, speed, "down");
+    setupButton("left", -speed, 0, "left");
+    setupButton("right", speed, 0, "right");
 
     window.addEventListener("resize", () => {
       x = Math.min(window.innerWidth - 32, x);
