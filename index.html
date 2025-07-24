@@ -7,7 +7,7 @@
   <style>
     body {
       margin: 0;
-      background-color: black;
+      background-color: white;
       overflow: hidden;
       touch-action: none;
     }
@@ -23,7 +23,7 @@
       width: 32px;
       height: 32px;
       image-rendering: pixelated;
-      transform: translate(-50%, -50%) scale(2);
+      transform: translate(-50%, -50%) scale(3);
     }
 
     .controls {
@@ -39,16 +39,16 @@
     }
 
     .controls button {
-     font-size: 24px;
-     background-color: #222;
-     color: white;
-     border: 2px solid #555;
-     border-radius: 8px;
-     padding: 10px;
-     user-select: none;
-     -webkit-user-select: none;
-     -ms-user-select: none;
-     touch-action: manipulation;
+      font-size: 24px;
+      background-color: #eee;  /* fondo claro */
+      color: #222;             /* texto oscuro */
+      border: 2px solid #999;
+      border-radius: 8px;
+      padding: 10px;
+      user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      touch-action: manipulation;
     }
 
     .empty {
@@ -60,7 +60,18 @@
   <div id="gameContainer">
     <img id="character" src="https://i.postimg.cc/7Z2V01RQ/abajo-frente.png" alt="Personaje" />
     <div class="controls">
-      <div class="empty"></div>
+      <div c.controls button {
+  font-size: 24px;
+  background-color: #eee;  /* fondo claro */
+  color: #222;             /* texto oscuro */
+  border: 2px solid #999;
+  border-radius: 8px;
+  padding: 10px;
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  touch-action: manipulation;
+        }lass="empty"></div>
       <button id="up">↑</button>
       <div class="empty"></div>
       <button id="left">←</button>
@@ -71,7 +82,7 @@
 
   <script>
     const character = document.getElementById("character");
-    const speed = 5;
+    const speed = 8;
     let x = window.innerWidth / 2 - 16;
     let y = window.innerHeight / 2 - 16;
     let direction = "down";
@@ -101,8 +112,8 @@
       const currentSprites = sprites[dir];
       const frame = isWalking ? walkFrame % 3 : 1;
       character.src = currentSprites[frame];
-      const scaleX = flip ? -2 : 2;
-      character.style.transform = `translate(-50%, -50%) scaleX(${scaleX}) scaleY(2)`;
+      const scaleX = flip ? -3 : 3;
+      character.style.transform = `translate(-50%, -50%) scaleX(${scaleX}) scaleY(3)`;
     }
 
     function move(dx, dy, newDirection) {
@@ -118,15 +129,19 @@
     }
 
     function startMoving(dx, dy, dir) {
-      if (interval) return;
-      interval = setInterval(() => move(dx, dy, dir), 80);
+     if (interval) return;
+     move(dx, dy, dir);
+     interval = setTimeout(() => {
+     interval = setInterval(() => move(dx, dy, dir), 80);
+     }, 200); // espera 300ms antes de activar movimiento continuo
     }
 
     function stopMoving() {
-      clearInterval(interval);
-      interval = null;
-      const spriteDir = (direction === "left" || direction === "right") ? "side" : direction;
-      updateSprite(spriteDir, false);
+    clearTimeout(interval);   // <-- esta línea es la nueva que evita problemas
+    clearInterval(interval);
+    interval = null;
+    const spriteDir = (direction === "left" || direction === "right") ? "side" : direction;
+    updateSprite(spriteDir, false);
     }
 
     function setupButton(id, dx, dy, dir) {
